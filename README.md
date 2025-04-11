@@ -38,14 +38,14 @@ It consists of three Java classes written in IntelliJ:
 
 ## 5.Run the MapReduce job:
 - a.in the terminal run the job using "hadoop jar" command:  "hadoop jar <JARpath> <mainclass> <inputfile> <outputdirectory>"
-       * replace <JARpath> with full path to the Jar
-       * <mainclass>: must include its full path. If a package was created, ensure the package name is included.
-            eg: main class is SymptomFrequencyDriver within the package com.neiu.symptomfrequency, it should be specified as com.neiu.symptomfrequency.SymptomFrequencyDriver
-       * <outputdirectory>: doesn't have to exist beforehand, Hadoop will create it automatically.
-            eg. "test/output" = put the output file in the "/output" directory located in the test directory we created
-       * full command in my case:
-       "hadoop jar /User/anedelcu/hadoop-install/hadoop-3.4.1/Java-work/symptomfrequency/target/symptomfrequency.jar com.neiu.symptomfrequency.SymptomFrequencyDriver /test/Dry_Eye.Dataset.csv /test/output"
-       !!   If the job fails during execution, you must change the output directory name before re-running the command; otherwise, it will not work
+  * replace <JARpath> with full path to the Jar
+  * <mainclass>: must include its full path. If a package was created, ensure the package name is included.
+    eg: main class is SymptomFrequencyDriver within the package com.neiu.symptomfrequency, it should be specified as com.neiu.symptomfrequency.SymptomFrequencyDriver
+  * <outputdirectory>: doesn't have to exist beforehand, Hadoop will create it automatically.
+    eg. "test/output" = put the output file in the "/output" directory located in the test directory we created
+  * full command in my case:"hadoop jar /User/anedelcu/hadoop-install/hadoop-3.4.1/Java-work/symptomfrequency/target/symptomfrequency.jar 
+    com.neiu.symptomfrequency.SymptomFrequencyDriver /test/Dry_Eye.Dataset.csv /test/output"
+  * !!   If the job fails during execution, you must change the output directory name before re-running the command; otherwise, it will not work
 - b.check the Hadoop web browser:  http://localhost:9870: in the /test next to Dry_Eye_Dataset.csv you should have the "output" directory.
       Open it up and if the job was successful you should see 2 or more file: _SUCCESS, part-r-0000 and part-r-0001(if multiple reducers are used)
 
@@ -83,35 +83,35 @@ It consists of three Java classes written in IntelliJ:
                 Job job = Job.getInstance(conf, "My Job");
 
 ## 3. Configuring the number of Reducers:
-     *      fully configurable by the user
-     *      can be done in 3 ways:
-                ** globally, edit the mapred-site.xml file: may not be ideal if different jobs have different requirements (e.g., small vs. large datasets).
-                 <property>
-                      <name>mapreduce.job.reduces</name>
-                      <value>10</value> <!-- Set the number of reducers to 10 -->
-                 </property>
-                ** in your driver class: Use the setNumReduceTasks() method: job.setNumReduceTasks(10); // Set to 10 reducers
-                    See the SymptomFrequencyDriver class -- we set 2 reducers for this problem
-                ** in the terminal when submit the hadoop jar command: "hadoop jar symptomfrequency.jar com.neiu.symptomfrequency.SymptomFrequencyDriver -D mapreduce.job.reduces=10 /input /output" = 10 reducers
+* fully configurable by the user
+* can be done in 3 ways:
+  - ** globally, edit the mapred-site.xml file: may not be ideal if different jobs have different requirements (e.g., small vs. large datasets).
+  <property>
+  <name>mapreduce.job.reduces</name>
+  <value>10</value> <!-- Set the number of reducers to 10 -->
+  </property>
+  - ** in your driver class: Use the setNumReduceTasks() method: job.setNumReduceTasks(10); // Set to 10 reducers
+  See the SymptomFrequencyDriver class -- we set 2 reducers for this problem
+  - ** in the terminal when submit the hadoop jar command: "hadoop jar symptomfrequency.jar com.neiu.symptomfrequency.SymptomFrequencyDriver -D mapreduce.job.reduces=10 /input /output" = 10 reducers
 
  # COMBINER AND The PARTITIONER
 ## 1. Combiner:
-     * the combiner runs at each DataNode where the mapper executes
-     * takes the output of the mapper,processes and reduces it before sending it over the network to the reducers
-     * in our case: using the same logic as the reducer to pre-sum counts
-     * eg: you need to specify the "job.setCombinerClass(SymptomFrequencyReducer.class);" in the Driver class to set up your combiner
-     * however, not all reducers can be directly used as combiners
-     * Hadoop itself decides whether to use the Combiner, even if it has been specified in the code.
+* the combiner runs at each DataNode where the mapper executes
+* takes the output of the mapper,processes and reduces it before sending it over the network to the reducers
+* in our case: using the same logic as the reducer to pre-sum counts
+* eg: you need to specify the "job.setCombinerClass(SymptomFrequencyReducer.class);" in the Driver class to set up your combiner
+* however, not all reducers can be directly used as combiners
+* Hadoop itself decides whether to use the Combiner, even if it has been specified in the code.
 
 ## 2. Partitioner:
-       *      The partitioner runs after the combiner (if used) on the mapper node.
-       *      takes the output of each combiner(if used)/ or of each map() and it splits in partitions
-       *      It determines which reducer will receive each key-value pair.
-       *      number of reducers = number of partitions
-       *      In our case: HashPartitioner assigns keys to reducers based on their hash value.
-       *      to set up partitions: You need to specify the "job.setPartitionerClass(HashPartitioner.class);" in the Driver class.
-       *      Ensures even data distribution across reducers to prevent workload imbalance.
-       *      By default, Hadoop uses HashPartitioner, but a custom partitioner can be implemented if needed.
+* The partitioner runs after the combiner (if used) on the mapper node.
+* takes the output of each combiner(if used)/ or of each map() and it splits in partitions
+* It determines which reducer will receive each key-value pair.
+* number of reducers = number of partitions
+* In our case: HashPartitioner assigns keys to reducers based on their hash value.
+* to set up partitions: You need to specify the "job.setPartitionerClass(HashPartitioner.class);" in the Driver class.
+* Ensures even data distribution across reducers to prevent workload imbalance.
+* By default, Hadoop uses HashPartitioner, but a custom partitioner can be implemented if needed.
 
 
 ## STEP-BY-STEP DATA FLOW WITH INPUT/OUTPUT
