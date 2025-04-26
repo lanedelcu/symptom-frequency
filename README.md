@@ -67,10 +67,14 @@ It consists of three Java classes written in IntelliJ:
 * as we know, the input is split into block, and these blocks are located on DataNodes. Each HDFS block by default is 128 MB
 * the size can be changed, but is not always recommended as it might drag down the process
 * 2 ways to change:
-*  ** globally, edit the hdfs-site.xml file: <pre > <property>
-                                                              <name>dfs.blocksize</name>
-                                                              <value>268435456</value> <!-- 256 MB -->
-                                                          </property> </pre>
+*  ** globally, edit the hdfs-site.xml file:
+
+  ```<property>
+<name>dfs.blocksize</name>
+<value>268435456</value> <!-- 256 MB -->
+</property> 
+```
+
   ** set it for a specific file during upload: in the terminal run`hadoop fs -D dfs.blocksize=268435456 -put localfile /hdfs/path`
 
 ## 2. Configuring the Number of Mappers
@@ -78,9 +82,12 @@ It consists of three Java classes written in IntelliJ:
 * the number of mappers is determined by YARN
 * eg. input data was split into 7 block = 7 mappers will run when we run the MapReduce job
 * You can change the input split size to control the number of mappers: in the driver class add the following code snippet
- `Configuration conf = new Configuration();
+ 
+ ```
+Configuration conf = new Configuration();
 conf.set("mapreduce.input.fileinputformat.split.maxsize", "268435456"); // 256 MB
-Job job = Job.getInstance(conf, "My Job");`
+Job job = Job.getInstance(conf, "My Job");
+```
 
 
 ## 3. Configuring the Number of Reducers
