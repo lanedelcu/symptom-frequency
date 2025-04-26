@@ -8,7 +8,7 @@ It consists of three Java classes written in IntelliJ:
 4. HashPartition - Controls how the output from the Mapper is divided among the Reducer tasks. The partitioner decides which reducer a particular key-value pair goes to.
 
 # **Steps to run the Project**:
-## 1. Download the input file that we will work with from Kaggle website
+# 1. Download the input file that we will work with from Kaggle website
 - Dataset URL: [Dry Eye Disease DataSet](https://www.kaggle.com/datasets/dakshnagra/dry-eye-disease)
 
 ## 2. Set up Hadoop:  Make sure Hadoop is installed and running on your Mac.
@@ -37,11 +37,11 @@ It consists of three Java classes written in IntelliJ:
 
 
 ## 5.Run the MapReduce job:
-- a.in the terminal run the job using "hadoop jar" command:  "hadoop jar <JARpath> <mainclass> <inputfile> <outputdirectory>"
+- a.in the terminal run the job using "hadoop jar" command:  `hadoop jar <JARpath> <mainclass> <inputfile> <outputdirectory>`
   * replace <JARpath> with full path to the Jar
-  * <mainclass>: must include its full path. If a package was created, ensure the package name is included.
+  * `<mainclass>`: must include its full path. If a package was created, ensure the package name is included.
     eg: main class is SymptomFrequencyDriver within the package com.neiu.symptomfrequency, it should be specified as com.neiu.symptomfrequency.SymptomFrequencyDriver
-  * <outputdirectory>: doesn't have to exist beforehand, Hadoop will create it automatically.
+  * `<outputdirectory>`: doesn't have to exist beforehand, Hadoop will create it automatically.
     eg. "test/output" = put the output file in the "/output" directory located in the test directory we created
   * full command in my case:"hadoop jar /User/anedelcu/hadoop-install/hadoop-3.4.1/Java-work/symptomfrequency/target/symptomfrequency.jar 
     com.neiu.symptomfrequency.SymptomFrequencyDriver /test/Dry_Eye.Dataset.csv /test/output"
@@ -49,50 +49,64 @@ It consists of three Java classes written in IntelliJ:
 - b.check the Hadoop web browser:  http://localhost:9870: in the /test next to Dry_Eye_Dataset.csv you should have the "output" directory.
       Open it up and if the job was successful you should see 2 or more file: _SUCCESS, part-r-0000 and part-r-0001(if multiple reducers are used)
 
-## 6. View the output on the terminal
-      *     in the terminal run "hadoop fs -cat /test/output/part-r-00000"
+## 6. View the output on the terminal  
+* in the terminal run `hadoop fs -cat /test/output/part-r-00000`
 
 ## 7.Copy the output to your local system(if you want)
-      *     The Reducer writes the final aggregated results to HDFS, so you can copy to local machine
-      *     "hdfs dfs -copyToLocal /test/output /local/path"
+* The Reducer writes the final aggregated results to HDFS, so you can copy to local machine
+* `hdfs dfs -copyToLocal /test/output /local/path`
 
 ## 8. If re-running the job
-      *     HDFS does not allow overwriting directories.
-      *     before re-running the job, delete the previous output directory: "hdfs dfs -rm -r /test/output"
+* HDFS does not allow overwriting directories.
+* before re-running the job, delete the previous output directory: 'hdfs dfs -rm -r /test/output`
 
 #MAPREDUCE JOB IS RUN SUCCESSFULLY!
 
 # MAPPERS, REDUCERS AND THE SIZE OF DATA BLOCKS
 ## 1. HDFS block size
-      *     as we know, the input is split into block, and these blocks are located on DataNodes. Each HDFS block by default is 128 MB
-      *     the size can be changed, but is not always recommended as it might drag down the process
-      *     2 ways to change:
-                ** globally, edit the hdfs-site.xml file: <property>
+* as we know, the input is split into block, and these blocks are located on DataNodes. Each HDFS block by default is 128 MB
+* the size can be changed, but is not always recommended as it might drag down the process
+* 2 ways to change:
+*  ** globally, edit the hdfs-site.xml file: <pre > <property>
                                                               <name>dfs.blocksize</name>
                                                               <value>268435456</value> <!-- 256 MB -->
-                                                          </property>
-                ** set it for a specific file during upload: in the terminal run "hadoop fs -D dfs.blocksize=268435456 -put localfile /hdfs/path"
+                                                          </property> </pre>
+  ** set it for a specific file during upload: in the terminal run`hadoop fs -D dfs.blocksize=268435456 -put localfile /hdfs/path`
 
 ## 2. Configuring the Number of Mappers
-      *     the number of mappers is not directly set by the user. Instead, it is determined by the number of block the input was split in
-      *     the number of mappers is determined by YARN
-      *     eg. input data was split into 7 block = 7 mappers will run when we run the MapReduce job
-      *     You can change the input split size to control the number of mappers: in the driver class add the following code snippet
-                Configuration conf = new Configuration();
-                conf.set("mapreduce.input.fileinputformat.split.maxsize", "268435456"); // 256 MB
-                Job job = Job.getInstance(conf, "My Job");
+* the number of mappers is not directly set by the user. Instead, it is determined by the number of block the input was split in
+* the number of mappers is determined by YARN
+* eg. input data was split into 7 block = 7 mappers will run when we run the MapReduce job
+* You can change the input split size to control the number of mappers: in the driver class add the following code snippet
+ `Configuration conf = new Configuration();
+conf.set("mapreduce.input.fileinputformat.split.maxsize", "268435456"); // 256 MB
+Job job = Job.getInstance(conf, "My Job");`
 
-## 3. Configuring the number of Reducers:
-* fully configurable by the user
-* can be done in 3 ways:
-  - ** globally, edit the mapred-site.xml file: may not be ideal if different jobs have different requirements (e.g., small vs. large datasets).
-  <property>
+
+## 3. Configuring the Number of Reducers
+
+The number of reducers is fully configurable by the user.
+
+It can be set in three ways:
+
+### 3.1 Globally (edit `mapred-site.xml`)
+
+Edit the `mapred-site.xml` file and set the property:
+`<property>
   <name>mapreduce.job.reduces</name>
-  <value>10</value> <!-- Set the number of reducers to 10 -->
-  </property>
-  - ** in your driver class: Use the setNumReduceTasks() method: job.setNumReduceTasks(10); // Set to 10 reducers
-  See the SymptomFrequencyDriver class -- we set 2 reducers for this problem
-  - ** in the terminal when submit the hadoop jar command: "hadoop jar symptomfrequency.jar com.neiu.symptomfrequency.SymptomFrequencyDriver -D mapreduce.job.reduces=10 /input /output" = 10 reducers
+  <value>10</value> <!-- Set to 10 reducers -->
+</property> `
+
+### 3.2 In the Driver Class (programatically)
+Use the setNumReduceTasks() method:  
+` job.setNumReduceTasks(10);` // Set to 10 reducers for example  
+
+### 3.3 In the terminal when you submit the hadoop jar command  
+
+`hadoop jar symptomfrequency.jar com.neiu.symptomfrequency.SymptomFrequencyDriver -D mapreduce.job.reduces=10 /input /output`  
+here ` -D mapreduce.job.reduces= 10` will set the job to run with 10 reducers
+
+
 
  # COMBINER AND The PARTITIONER
 ## 1. Combiner:
