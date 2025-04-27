@@ -4,7 +4,7 @@ It is designed for beginners who are new to Hadoop and distributing computing
 It consists of three Java classes written in IntelliJ:
 1. SymptomFrequencyMapper - Extracts the age and the symptoms, and Maps the input csv into key-value pairs (age_range:symptom, 1>).
 2. SymptomFrequencyReducer - Grouping the occurrences of the same key, and sums up the counts for each key.
-3. SymptomFrequencyDriver - Configures and runs the Hadoop job.
+3. SymptomFrequencyDriver - Configures and runs the Hadoop job. It defines the input and output files, the mapper and reducer classes responsible for the data transformations, and the data types involved.
 4. HashPartition - Controls how the output from the Mapper is divided among the Reducer tasks. The partitioner decides which reducer a particular key-value pair goes to.
 
 # **Steps to run the Project**:
